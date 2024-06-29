@@ -6,6 +6,7 @@ void ofApp::setup(){
 	Edgehead = new Edge;
 	Nodehead->drawnext = NULL;
 	Edgehead->drawnext = NULL;
+	edgeFlag = false;
 	jointCount = 0;
 	isDrawing = false;
 	selectedNode = NULL;
@@ -48,6 +49,10 @@ void ofApp::keyPressed(int key){
 			isDrawing = true;
 			printf("\n===Drawing Mode===\n");
 		}
+	}
+
+	if (key == 'r') {
+		reset();
 	}
 
 	if (isDrawing) {
@@ -566,4 +571,24 @@ void ofApp::drawInterface() {
 			font.drawString(to_string(selectedNode->x) + " " + to_string(selectedNode->y), 3, 51);
 		}
 	}
+}
+
+void ofApp::reset() {
+	Edge* Edgedel;
+	Edge* Edgetmp = Edgehead;
+	Node* Nodedel;
+	Node* Nodetmp = Nodehead;
+	while (Edgetmp != NULL) {
+		Edgedel = Edgetmp;
+		Edgetmp = Edgedel->drawnext;
+		delete(Edgedel);
+	}
+	while (Nodetmp != NULL) {
+		Nodedel = Nodetmp;
+		Nodetmp = Nodedel->drawnext;
+		delete(Nodedel);
+	}
+	setup();
+
+	printf("\n==Reset all status==\n");
 }

@@ -100,4 +100,5 @@ public:
 	void drawPreview(int mouse_x, int mouse_y);
 	void drawPath();
 	void drawInterface();
+	void reset();
 };
