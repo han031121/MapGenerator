@@ -1,4 +1,4 @@
-#include "ofApp.h"
+ï»¿#include "ofApp.h"
 
 //--------------------------------------------------------------
 void ofApp::setup(){
@@ -55,19 +55,30 @@ void ofApp::keyPressed(int key){
 		reset();
 	}
 
-	if (isDrawing) {
+	if (isDrawing) { //in Drawing Mode
 		if (key == 'd') {
 			tagChange(Edgehead);
 		}
 	}
 
-	if (!isDrawing) {
+	if (!isDrawing && !isFinding) { //in Select Mode
+		if (key == 'q') {
+			if (selectedEdge)
+				deleteEdge(selectedEdge);
+			else if (selectedNode)
+				deleteNode(selectedNode);
+			else
+				printf("you need to select node or edge first\n");
+		}
 		if (key == 'w') {
 			setWeight();
 		}
 		if (key == 'e') {
 			setNodename();
 		}
+	}
+
+	if (!isDrawing) { //not in Drawing Mode
 		if (key == 'f') {
 			if (!isFinding)
 				findPath();
@@ -177,7 +188,7 @@ void ofApp::createNode(Node* nodehead, int mouse_x, int mouse_y) {
 			return;
 		}
 		making = selectedNode;
-		if (trail == making) //ÀÚ±âÀÚ½Å°ú ¸µÅ© ºÒ°¡
+		if (trail == making) //ìžê¸°ìžì‹ ê³¼ ë§í¬ ë¶ˆê°€
 			return;
 
 		if(trail!=NULL)
@@ -206,6 +217,9 @@ void ofApp::createNode(Node* nodehead, int mouse_x, int mouse_y) {
 		cur->drawnext = NULL;
 		making = cur;
 		nodeCount++;
+
+		for (int i = 0; i < MAX_ADJ; i++)
+			cur->connected[i] = NULL;
 
 		printf("%d %d created\n", making->x, making->y);
 	}
@@ -247,6 +261,61 @@ void ofApp::createEdge(Edge* edgehead, Node* trail, Node* cur) {
 	jointCount = 0;
 }
 
+void ofApp::deleteNode(Node* delNode) {
+	Node* prev = Nodehead;
+	int adjcount = delNode->adj_count;
+
+	while (prev->drawnext != delNode && prev->drawnext != NULL)
+		prev = prev->drawnext;
+
+	for (int i = 0; i < adjcount; i++)
+		deleteEdge(delNode->connected[0]);
+
+	prev->drawnext = delNode->drawnext;
+	printf("%d %d deleted\n", delNode->x, delNode->y);
+	free(delNode);
+
+	edgeFlag = false;
+	selectedNode = NULL;
+	selectedEdge = NULL;
+}
+
+void ofApp::deleteEdge(Edge* delEdge) {
+	Node* adj;
+	Edge* prev = Edgehead;
+	int adjcount;
+	bool edgefound = false;
+
+	while (prev->drawnext != delEdge && prev->drawnext != NULL)
+		prev = prev->drawnext;
+
+	for (int i = 0; i < 2; i++) {
+		adj = delEdge->points[i];
+		adjcount = adj->adj_count;
+
+		for (int j = 0; j < adjcount; j++) {
+			if (edgefound) {	
+				adj->connected[j - 1] = adj->connected[j];
+				adj->connected[j] = NULL;
+			}
+			else if (adj->connected[j] == delEdge) {
+				edgefound = true;
+				if (j == MAX_ADJ - 1)
+					adj->connected[j] == NULL;
+			}
+		}
+		adj->adj_count--;
+
+		prev->drawnext = delEdge->drawnext;
+	}
+	printf("%d %d ~ %d %d deleted\n", delEdge->points[0]->x, delEdge->points[0]->y, 
+		delEdge->points[1]->x, delEdge->points[1]->y);
+	free(delEdge);
+
+	selectedNode = NULL;
+	selectedEdge = NULL;
+}
+
 void ofApp::makeJoint(int mouse_x,int mouse_y) {
 	if (selectedNode) {
 		making = selectedNode;
@@ -285,19 +354,6 @@ ofApp::Edge* ofApp::selectEdge(int mouse_x, int mouse_y) {
 		}
 	}
 	selectedEdge = NULL;
-}
-
-bool ofApp::isidenticalNode(Edge* edgehead, Node* point1, Node* point2) {
-	while (edgehead->drawnext != NULL) {
-		edgehead = edgehead->drawnext;
-		if (currentTag == edgehead->tag) {
-			if (edgehead->points[0] == point1 && edgehead->points[1] == point2)
-				return true;
-			if (edgehead->points[1] == point1 && edgehead->points[0] == point2)
-				return true;
-		}
-	}
-	return false;
 }
 
 void ofApp::tagChange(Edge* edgehead) {
@@ -380,6 +436,19 @@ void ofApp::setNodename() {
 	selectedNode->name = tmp;
 }
 
+bool ofApp::isidenticalNode(Edge* edgehead, Node* point1, Node* point2) {
+	while (edgehead->drawnext != NULL) {
+		edgehead = edgehead->drawnext;
+		if (currentTag == edgehead->tag) {
+			if (edgehead->points[0] == point1 && edgehead->points[1] == point2)
+				return true;
+			if (edgehead->points[1] == point1 && edgehead->points[0] == point2)
+				return true;
+		}
+	}
+	return false;
+}
+
 void ofApp::initalizeSP(Node* nodehead) {
 	while (nodehead->drawnext != NULL) {
 		nodehead = nodehead->drawnext;
@@ -412,7 +481,7 @@ void ofApp::shortestPath(Node* startnode) {
 			if (adj == cur)
 				continue;
 
-			if (adj->totalweight > cur->totalweight + cur->connected[i]->weight) { //°»½Å
+			if (adj->totalweight > cur->totalweight + cur->connected[i]->weight) { //ê°±ì‹ 
 				adj->totalweight = cur->totalweight + cur->connected[i]->weight;
 				adj->path = cur->path;
 				adj->path.push(cur->connected[i]);
@@ -542,7 +611,7 @@ void ofApp::drawInterface() {
 		curnode = curnode->drawnext;
 		if (curnode->name.size() > 0) {
 			font.drawString(curnode->name, curnode->x, curnode->y + 25);
-			//ÀÌ¸§ ¾²±â
+			//ì´ë¦„ ì“°ê¸°
 		}
 	}
 
@@ -551,7 +620,7 @@ void ofApp::drawInterface() {
 		edgex = (curedge->points[0]->x + curedge->points[1]->x) / 2;
 		edgey = (curedge->points[0]->y + curedge->points[1]->y) / 2;
 		font.drawString(to_string(curedge->weight), edgex, edgey);
-		//weight ¾²±â
+		//weight ì“°ê¸°
 	}
 
 	if (isDrawing) {
@@ -590,5 +659,5 @@ void ofApp::reset() {
 	}
 	setup();
 
-	printf("\n==Reset all status==\n");
+	printf("\n===Reset all status===\n");
 }

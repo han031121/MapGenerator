@@ -86,19 +86,27 @@ public:
 
 	void createNode(Node* nodehead, int mouse_x, int mouse_y);
 	void createEdge(Edge* edgehead, Node* trail, Node* cur);
+	void deleteNode(Node* delNode);
+	void deleteEdge(Edge* delEdge);
+
 	void makeJoint(int mouse_x, int mouse_y);
+	
 	Node* selectNode(Node* nodehead, int mouse_x, int mouse_y);
 	Edge* selectEdge(int mouse_x, int mouse_y);
-	bool isidenticalNode(Edge* edgehead, Node* point1, Node* point2);
 	void tagChange(Edge* edgehead);
 	void setWeight();
 	void setNodename();
+
+	bool isidenticalNode(Edge* edgehead, Node* point1, Node* point2);
+	
 	void initalizeSP(Node* nodehead);
 	void shortestPath(Node* startnode);
 	void findPath();
+
 	void drawMap(Node* nodes, Edge* edges);
 	void drawPreview(int mouse_x, int mouse_y);
 	void drawPath();
 	void drawInterface();
+
 	void reset();
 };
