@@ -9,6 +9,7 @@ void ofApp::setup(){
 	edgeFlag = false;
 	jointCount = 0;
 	isDrawing = false;
+	ishelp = true;
 	selectedNode = NULL;
 	making = NULL;
 	currentTag = 0;
@@ -49,6 +50,13 @@ void ofApp::keyPressed(int key){
 			isDrawing = true;
 			printf("\n===Drawing Mode===\n");
 		}
+	}
+
+	if (key == OF_KEY_F1) {
+		if (ishelp)
+			ishelp = false;
+		else
+			ishelp = true;
 	}
 
 	if (key == 'r') {
@@ -604,6 +612,9 @@ void ofApp::drawInterface() {
 	int edgex, edgey;
 	int x = ofGetMouseX();
 	int y = ofGetMouseY();
+	int width = ofGetWidth();
+	int height = ofGetHeight();
+	int helpline = 11;
 
 	ofSetColor(96, 96, 96);
 
@@ -639,6 +650,21 @@ void ofApp::drawInterface() {
 		if (selectedNode) {
 			font.drawString(to_string(selectedNode->x) + " " + to_string(selectedNode->y), 3, 51);
 		}
+	}
+
+	if (ishelp) {
+		font.drawString("< HELP >", 3, height - 24 * (helpline + 1));
+		font.drawString("Left Click : Create / Link Node", 3, height - 24 * (helpline));
+		font.drawString("Right Click : Make Joint / Change Start Point", 3, height - 24 * (helpline - 1));
+		font.drawString("Q : Delete", 3, height - 24 * (helpline - 2));
+		font.drawString("W : Set Weight", 3, height - 24 * (helpline - 3));
+		font.drawString("E : Set Name of Node", 3, height - 24 * (helpline - 4));
+		font.drawString("R : Reset", 3, height - 24 * (helpline - 5));
+		font.drawString("A : Save Map File", 3, height - 24 * (helpline - 6));
+		font.drawString("S : Mode Change", 3, height - 24 * (helpline - 7));
+		font.drawString("D : Change Tag", 3, height - 24 * (helpline - 8));
+		font.drawString("F : Find Shrotest Path", 3, height - 24 * (helpline - 9));
+		font.drawString("F1 : HELP on/off", 3, height - 24 * (helpline - 10));
 	}
 }
 

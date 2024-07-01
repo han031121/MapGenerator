@@ -66,6 +66,7 @@ public:
 	bool edgeFlag; // true : create edge when node created, 다른 노선 생성시 false로 초기화
 	bool isDrawing; // drawing mode시 true
 	bool isFinding; //find path 실행시 true
+	bool ishelp; //도움말 유무
 
 	ofColor colorSet[MAX_TAG] = { ofColor(0x00,0x52,0xa4),ofColor(0x00,0xa8,0x4d),
 	ofColor(0xef,0x7c,0x1c),ofColor(0x00,0xa5,0xde),
