@@ -223,6 +223,7 @@ void ofApp::createNode(Node* nodehead, int mouse_x, int mouse_y) {
 		cur->x = mouse_x;
 		cur->y = mouse_y;
 		cur->drawnext = NULL;
+		cur->weight = 0;
 		making = cur;
 		nodeCount++;
 
@@ -390,18 +391,28 @@ void ofApp::tagChange(Edge* edgehead) {
 }
 
 void ofApp::setWeight() {
-	if (!selectedEdge) {
-		printf("you need to select an edge to set weight\n");
+	if (!selectedEdge && !selectedNode) {
+		printf("you need to select node or edge to set weight\n");
 		return;
 	}
-	int x1 = selectedEdge->points[0]->x;
-	int y1 = selectedEdge->points[0]->y;
-	int x2 = selectedEdge->points[1]->x;
-	int y2 = selectedEdge->points[1]->y;
+	int x1, y1, x2, y2;
 	int tmp;
+	if (selectedEdge) {
+		x1 = selectedEdge->points[0]->x;
+		y1 = selectedEdge->points[0]->y;
+		x2 = selectedEdge->points[1]->x;
+		y2 = selectedEdge->points[1]->y;
+	}
+	else if (selectedNode) {
+		x1 = selectedNode->x;
+		y1 = selectedNode->y;
+	}
 
 	while (1) {
-		printf("weight of edge (%d %d ~ %d %d) : ", x1, y1, x2, y2);
+		if(selectedEdge)
+			printf("weight of edge (%d %d ~ %d %d) : ", x1, y1, x2, y2);
+		else if(selectedNode)
+			printf("weight of node (%d %d) : ", x1, y1);
 		cin >> tmp;
 		if (cin.fail()) {
 			cin.clear();
@@ -414,7 +425,10 @@ void ofApp::setWeight() {
 	}
 
 	printf("complete setting weight\n");
-	selectedEdge->weight = tmp;
+	if (selectedEdge)
+		selectedEdge->weight = tmp;
+	else if (selectedNode)
+		selectedNode->weight = tmp;
 }
 
 void ofApp::setNodename() {
@@ -486,11 +500,13 @@ void ofApp::shortestPath(Node* startnode) {
 		for (int j = 0; j < 2; j++) {
 			adj = cur->connected[i]->points[j];
 
-			if (adj == cur)
+			if (adj == cur || adj == NULL)
 				continue;
 
-			if (adj->totalweight > cur->totalweight + cur->connected[i]->weight) { //갱신
-				adj->totalweight = cur->totalweight + cur->connected[i]->weight;
+			if (adj->totalweight > cur->totalweight 
+					+ cur->connected[i]->weight + cur->weight) { //갱신
+				adj->totalweight = cur->totalweight 
+					+ cur->connected[i]->weight + cur->weight;
 				adj->path = cur->path;
 				adj->path.push(cur->connected[i]);
 				adj->travelable = true;
@@ -620,18 +636,23 @@ void ofApp::drawInterface() {
 
 	while (curnode->drawnext != NULL) {
 		curnode = curnode->drawnext;
-		if (curnode->name.size() > 0) {
-			font.drawString(curnode->name, curnode->x, curnode->y + 25);
-			//이름 쓰기
-		}
+		if (curnode->name.size() > 0)
+			font.drawString(curnode->name, curnode->x, curnode->y + 25); //이름 쓰기
+		if (curnode->weight > 0)
+			font.drawString(to_string(curnode->weight), curnode->x, curnode->y); //weight 쓰기
 	}
 
 	while (curedge->drawnext != NULL) {
 		curedge = curedge->drawnext;
-		edgex = (curedge->points[0]->x + curedge->points[1]->x) / 2;
-		edgey = (curedge->points[0]->y + curedge->points[1]->y) / 2;
-		font.drawString(to_string(curedge->weight), edgex, edgey);
-		//weight 쓰기
+		if (curedge->jointcount == 0) {
+			edgex = (curedge->points[0]->x + curedge->points[1]->x) / 2;
+			edgey = (curedge->points[0]->y + curedge->points[1]->y) / 2;
+		}
+		else {
+			edgex = curedge->joint[(int)(curedge->jointcount + 2) / 2].x;
+			edgey = curedge->joint[(int)(curedge->jointcount + 2) / 2].y;
+		}
+		font.drawString(to_string(curedge->weight), edgex, edgey); //weight 쓰기
 	}
 
 	if (isDrawing) {
@@ -660,7 +681,7 @@ void ofApp::drawInterface() {
 		font.drawString("W : Set Weight", 3, height - 24 * (helpline - 3));
 		font.drawString("E : Set Name of Node", 3, height - 24 * (helpline - 4));
 		font.drawString("R : Reset", 3, height - 24 * (helpline - 5));
-		font.drawString("A : Save Map File", 3, height - 24 * (helpline - 6));
+		font.drawString("A : Save/Load Map File", 3, height - 24 * (helpline - 6));
 		font.drawString("S : Mode Change", 3, height - 24 * (helpline - 7));
 		font.drawString("D : Change Tag", 3, height - 24 * (helpline - 8));
 		font.drawString("F : Find Shrotest Path", 3, height - 24 * (helpline - 9));

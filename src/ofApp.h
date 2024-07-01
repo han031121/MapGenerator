@@ -39,6 +39,7 @@ public:
 		string name;
 		Edge* connected[MAX_ADJ];
 		Node* drawnext;
+		int weight;
 		stack<Edge*> path; //path 찾을때
 		int totalweight; //path 찾을때
 		bool travelable; //path 찾을때
